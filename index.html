@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Air Quality Index</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🇮🇳 India Air Quality Index</h1>
+            <div class="search-box">
+                <select id="state-select">
+                    <option value="">Select State/UT</option>
+                    <!-- States will be populated by JavaScript -->
+                </select>
+                <select id="city-select" disabled>
+                    <option value="">Select City</option>
+                    <!-- Cities will be populated based on state selection -->
+                </select>
+            </div>
+        </header>
+
+        <main>
+            <div class="aqi-display-with-air">
+                <div class="air-animation left-air" aria-hidden="true">
+                    <!-- SVG wind animation (mirrored) -->
+                    <svg id="wind-svg-left" width="240" height="440" viewBox="0 0 240 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path class="wind1" d="M20 80 Q120 20 220 80" stroke="#90caf9" stroke-width="8" fill="none"/>
+                        <path class="wind2" d="M20 160 Q120 100 220 160" stroke="#b3e5fc" stroke-width="6" fill="none"/>
+                        <path class="wind3" d="M20 240 Q120 180 220 240" stroke="#b2dfdb" stroke-width="5" fill="none"/>
+                        <path class="wind4" d="M20 320 Q120 260 220 320" stroke="#c5e1a5" stroke-width="4" fill="none"/>
+                        <path class="wind5" d="M20 400 Q120 340 220 400" stroke="#fff59d" stroke-width="3" fill="none"/>
+                    </svg>
+                </div>
+                <div class="aqi-display">
+                    <div class="city-info">
+                        <h2 id="selected-city">Select a city</h2>
+                        <p id="location-info"></p>
+                        <p id="last-updated"></p>
+                    </div>
+
+                    <div class="aqi-card">
+                        <div class="aqi-main">
+                            <h3>Air Quality Index</h3>
+                            <div class="aqi-value">
+                                <span id="aqi-number">--</span>
+                                <span id="aqi-text">--</span>
+                            </div>
+                        </div>
+
+                        <div class="pollutants-grid">
+                            <div class="pollutant-item">
+                                <h4>PM2.5</h4>
+                                <span id="pm25">--</span>
+                                <span class="unit">µg/m³</span>
+                            </div>
+                            <div class="pollutant-item">
+                                <h4>PM10</h4>
+                                <span id="pm10">--</span>
+                                <span class="unit">µg/m³</span>
+                            </div>
+                            <div class="pollutant-item">
+                                <h4>AQI Level</h4>
+                                <span id="aqi-level">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="health-info">
+                        <h3>Health Advisory</h3>
+                        <p id="health-message">Select a city to see health recommendations.</p>
+                    </div>
+
+                    <div class="about-aqi">
+                        <h3>About AQI Levels</h3>
+                        <div class="aqi-levels">
+                            <div class="aqi-level-item good">
+                                <span class="level-name">Good</span>
+                                <span class="level-range">0-50</span>
+                            </div>
+                            <div class="aqi-level-item moderate">
+                                <span class="level-name">Moderate</span>
+                                <span class="level-range">51-100</span>
+                            </div>
+                            <div class="aqi-level-item poor">
+                                <span class="level-name">Poor</span>
+                                <span class="level-range">101-200</span>
+                            </div>
+                            <div class="aqi-level-item unhealthy">
+                                <span class="level-name">Very Poor</span>
+                                <span class="level-range">201-300</span>
+                            </div>
+                            <div class="aqi-level-item severe">
+                                <span class="level-name">Severe</span>
+                                <span class="level-range">>300</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="air-animation" aria-hidden="true">
+                    <!-- SVG wind animation -->
+                    <svg id="wind-svg" width="240" height="440" viewBox="0 0 240 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path class="wind1" d="M20 80 Q120 20 220 80" stroke="#90caf9" stroke-width="8" fill="none"/>
+                        <path class="wind2" d="M20 160 Q120 100 220 160" stroke="#b3e5fc" stroke-width="6" fill="none"/>
+                        <path class="wind3" d="M20 240 Q120 180 220 240" stroke="#b2dfdb" stroke-width="5" fill="none"/>
+                        <path class="wind4" d="M20 320 Q120 260 220 320" stroke="#c5e1a5" stroke-width="4" fill="none"/>
+                        <path class="wind5" d="M20 400 Q120 340 220 400" stroke="#fff59d" stroke-width="3" fill="none"/>
+                    </svg>
+                </div>
+            </div>
+        </main>
+
+        <!-- ML Training Visualization -->
+        <div class="ml-training-section">
+            <h3>AI Model Training & Predictions</h3>
+            <div class="ml-training-container">
+                <div class="ml-training-visualization">
+                    <div class="ml-training-graph">
+                        <canvas id="training-graph"></canvas>
+                    </div>
+                    <div class="ml-training-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Epoch</span>
+                            <span class="stat-value" id="current-epoch">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Loss</span>
+                            <span class="stat-value" id="current-loss">0.0000</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Accuracy</span>
+                            <span class="stat-value" id="current-accuracy">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="ml-training-info">
+                    <p>Our AI model is continuously learning from air quality data to improve predictions. The model uses:</p>
+                    <ul>
+                        <li>Historical AQI data</li>
+                        <li>Weather patterns</li>
+                        <li>Pollutant concentrations</li>
+                        <li>Seasonal variations</li>
+                    </ul>
+                    <button id="start-training" class="training-button">Start Training</button>
+                </div>
+            </div>
+            
+            <!-- Prediction Section -->
+            <div class="prediction-section">
+                <h4>7-Day Air Quality Forecast</h4>
+                <div class="prediction-container">
+                    <div class="prediction-graph">
+                        <canvas id="prediction-graph"></canvas>
+                    </div>
+                    <div class="prediction-details">
+                        <div class="prediction-stats">
+                            <div class="prediction-stat">
+                                <span class="prediction-label">Average AQI</span>
+                                <span class="prediction-value" id="avg-prediction">--</span>
+                            </div>
+                            <div class="prediction-stat">
+                                <span class="prediction-label">Trend</span>
+                                <span class="prediction-value" id="prediction-trend">--</span>
+                            </div>
+                            <div class="prediction-stat">
+                                <span class="prediction-label">Confidence</span>
+                                <span class="prediction-value" id="prediction-confidence">--</span>
+                            </div>
+                        </div>
+                        <div class="prediction-alerts" id="prediction-alerts">
+                            <!-- Alerts will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Made with ❤️ for India | Data updated regularly</p>
+            <small>Covering all major cities and locations across India</small>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <!-- Chatbot Component -->
+    <div class="chatbot-container">
+        <div class="chatbot-header">
+            <h3>Air Quality Assistant</h3>
+            <button class="close-chatbot">×</button>
+        </div>
+        <div class="chatbot-messages">
+            <div class="message bot">
+                <p>Hello! I'm your Air Quality Assistant. How can I help you today?</p>
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" placeholder="Ask about air quality..." />
+            <button class="send-button">Send</button>
+        </div>
+    </div>
+    <button class="chatbot-toggle">💬</button>
+</body>
+</html> 
